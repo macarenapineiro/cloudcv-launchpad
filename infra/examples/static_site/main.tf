@@ -42,7 +42,7 @@ module "static_site" {
 
   resource_group_name = azurerm_resource_group.prueba.name
   location            = azurerm_resource_group.prueba.location
-  site_path           = ${path.root}/../../../app/site"
+  site_path           = "${path.root}/../../../app/site"
   tags                = local.tags
 }
 
