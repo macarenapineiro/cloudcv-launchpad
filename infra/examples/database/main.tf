@@ -3,7 +3,7 @@
 # El state queda en esta carpeta y NO se sube al repo (está en el .gitignore).
 
 terraform {
-  required_version = ">= 1.9"
+  required_version = ">= 1.10"
 
   required_providers {
     azurerm = {
@@ -36,9 +36,9 @@ provider "azurerm" {
 locals {
   tags = {
     project = "cloudcv"
-    team    = "pineiro-hernandez"
+    team    = "cloudcv-ucu"
     env     = "prueba"
-    owner   = "macarena.pineiro@correo.ucu.edu.uy"
+    owner   = "macarena.pineiro"
   }
 }
 
@@ -49,7 +49,7 @@ resource "azurerm_resource_group" "prueba" {
 }
 
 module "database" {
-  source = "../"
+  source = "../../modules/database"
 
   resource_group_name = azurerm_resource_group.prueba.name
   location            = azurerm_resource_group.prueba.location
