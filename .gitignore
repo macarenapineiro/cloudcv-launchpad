@@ -1,3 +1,6 @@
 .terraform/
 *.tfstate*
 *.tfplan
+.venv/
+__pycache__/
+.DS_Store
