@@ -1,0 +1,97 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f4f5f7;
+  color: #222;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+.cv {
+  max-width: 760px;
+  margin: 40px auto;
+  padding: 40px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.cv-header {
+  border-bottom: 2px solid #0078d4;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.rol {
+  margin: 4px 0;
+  color: #555;
+}
+
+.contacto a {
+  color: #0078d4;
+  text-decoration: none;
+}
+
+h2 {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0078d4;
+  margin-top: 28px;
+}
+
+h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.item {
+  margin-bottom: 16px;
+}
+
+.fecha {
+  margin: 0;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.habilidades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.habilidades li {
+  background: #eaf3fc;
+  color: #0b5394;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+
+.contador {
+  margin-top: 36px;
+  padding-top: 16px;
+  border-top: 1px solid #ddd;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .cv {
+    margin: 0;
+    padding: 24px 16px;
+    border-radius: 0;
+  }
+}
