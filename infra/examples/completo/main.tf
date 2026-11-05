@@ -28,6 +28,8 @@ terraform {
 provider "azurerm" {
   features {
     resource_group {
+      # Azure crea solo un "action group" al crear Application Insights.
+      # Sin esto, el destroy se frena porque OpenTofu no conoce ese recurso.
       prevent_deletion_if_contains_resources = false
     }
   }

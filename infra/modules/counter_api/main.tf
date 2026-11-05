@@ -81,6 +81,8 @@ resource "azurerm_function_app_flex_consumption" "contador" {
   maximum_instance_count = var.max_instances
   instance_memory_in_mb  = 2048
 
+  https_only = true # rechaza las llamadas por HTTP, solo acepta HTTPS
+
   # Identidad propia de la Function: con ella entra a la tabla, sin claves.
   identity {
     type = "SystemAssigned"
@@ -88,11 +90,7 @@ resource "azurerm_function_app_flex_consumption" "contador" {
 
   site_config {
     application_insights_connection_string = azurerm_application_insights.insights.connection_string
-
-    # CORS: solo el sitio del CV puede llamar a la Function desde el navegador.
-    cors {
-      allowed_origins = [var.allowed_origin]
-    }
+    # El CORS se configura más abajo, en azapi_update_resource.cors.
   }
 
   # Lo que lee function_app.py con os.environ.
@@ -102,6 +100,31 @@ resource "azurerm_function_app_flex_consumption" "contador" {
   }
 
   tags = var.tags
+
+  lifecycle {
+    # El CORS lo maneja azapi_update_resource.cors: que azurerm no intente borrarlo.
+    ignore_changes = [site_config[0].cors]
+  }
+}
+
+# ── CORS ───────────────────────────────────────────────────────────────────────
+# Solo el sitio del CV puede llamar a la Function desde el navegador.
+# Va en un paso aparte porque, si se pone dentro de site_config, el provider azurerm
+# falla en el primer apply: la dirección del sitio todavía no se conoce al hacer el plan
+# y el provider se confunde ("block count changed from 0 to 1").
+resource "azapi_update_resource" "cors" {
+  type      = "Microsoft.Web/sites/config@2023-12-01"
+  name      = "web"
+  parent_id = azurerm_function_app_flex_consumption.contador.id
+
+  body = {
+    properties = {
+      cors = {
+        allowedOrigins     = [var.allowed_origin]
+        supportCredentials = false
+      }
+    }
+  }
 }
 
 # ── Permiso de la Function sobre la tabla ──────────────────────────────────────
