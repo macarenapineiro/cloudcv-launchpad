@@ -1,0 +1,107 @@
+# Arquitectura
+
+![Diagrama de arquitectura de CloudCV Launchpad](arquitectura.png)
+
+## Cómo se lee
+
+**Lo que hace el visitante (flechas 1 a 3):**
+
+1. El navegador carga el CV desde una cuenta de Storage con *static website*, siempre por HTTPS.
+2. El JavaScript del sitio llama a la Function con un `POST /api/visitas`. La Function solo acepta llamadas que vengan del sitio (CORS) y rechaza las que no son HTTPS.
+3. La Function suma la visita en la tabla `visitas`. Entra con su **identidad administrada** y el rol *Storage Table Data Contributor*, que vale **solo para esa tabla**. La cuenta de datos no tiene claves.
+
+**Lo que hace el pipeline (abajo):**
+
+- En cada Pull Request, GitHub Actions corre los chequeos (fmt, validate, tflint, Checkov, los tests de la función) y el `plan`.
+- Al unir a `main`, el `apply` espera la aprobación de una de las dos (environment `dev`).
+- Para entrar a Azure no hay contraseñas guardadas: GitHub le pide un token a Microsoft Entra ID (**OIDC**), que lo cambia por un permiso de la identidad `id-cloudcv-github`.
+- Esa identidad tiene permisos mínimos: puede escribir el state **solo en su contenedor**, y crear recursos y asignar roles **solo en `rg-cloudcv-dev`**, y únicamente los roles de una lista.
+
+## Zonas de seguridad
+
+| Zona (color) | Qué hay | Cómo se protege |
+| --- | --- | --- |
+| Pública (azul) | Sitio del CV y Function | Solo HTTPS; la Function solo acepta llamadas del sitio |
+| Privada (verde) | Tabla del contador | Sin claves: solo entra la identidad de la Function con su rol |
+| Observabilidad (naranja) | Logs, dashboard y alerta | Logs con tope diario y 30 días de guardado |
+| State (`rg-cloudcv-tfstate`) | State remoto e identidad del pipeline | Sin claves, versionado y borrado suave |
+
+## Código del diagrama
+
+El diagrama está hecho con Mermaid. GitHub lo dibuja solo, y la imagen se regenera con `mmdc -i docs/arquitectura.mmd -o docs/arquitectura.png -w 2400 -b white`.
+
+```mermaid
+flowchart LR
+    visitante(["Visitante<br/>(navegador)"])
+
+    subgraph github["GitHub · cloudcv-launchpad"]
+        pr["Pull Request<br/>fmt · validate · tflint · Checkov<br/>tests de la función · plan"]
+        deploy["Merge a main<br/>apply con aprobación<br/>(environment dev)<br/>+ deploy del código"]
+    end
+
+    entra["Microsoft Entra ID<br/>valida el token OIDC<br/>sin claves guardadas"]
+
+    subgraph azure["Azure for Students · canadacentral"]
+        subgraph rgstate["rg-cloudcv-tfstate"]
+            idgh["Identidad del pipeline<br/>id-cloudcv-github"]
+            tfstate[("State remoto<br/>sin claves · versionado")]
+        end
+
+        subgraph rgdev["rg-cloudcv-dev"]
+            tofu["OpenTofu crea y actualiza<br/>todo lo de este grupo"]
+
+            subgraph publico["Zona pública · solo HTTPS"]
+                sitio["Sitio del CV<br/>Storage static website"]
+                func["Azure Function (Python)<br/>Flex Consumption<br/>CORS: solo el sitio"]
+            end
+
+            subgraph privado["Solo con identidad y rol · sin claves"]
+                tabla[("Table Storage<br/>tabla visitas")]
+            end
+
+            fnstore[("Storage interno<br/>paquete del código")]
+
+            subgraph obs["Observabilidad"]
+                appi["Application Insights<br/>+ Log Analytics"]
+                dash["Dashboard<br/>visitas · errores · p95"]
+                alerta["Alerta<br/>errores > 5 % en 5 min"]
+            end
+        end
+    end
+
+    mail(["Mail al equipo"])
+
+    visitante -- "1 · carga el CV" --> sitio
+    visitante -- "2 · POST /api/visitas" --> func
+    func -- "3 · suma la visita<br/>identidad administrada<br/>Table Data Contributor" --> tabla
+    func -. "su código" .-> fnstore
+    func -. "telemetría" .-> appi
+    appi --> dash
+    appi --> alerta
+    alerta -- "aviso" --> mail
+
+    pr --> deploy
+    deploy -- "token OIDC" --> entra
+    entra -- "token de Azure" --> idgh
+    idgh -- "Blob Data Contributor<br/>solo el contenedor" --> tfstate
+    idgh == "Contributor + RBAC Admin con condición<br/>solo en rg-cloudcv-dev" ==> tofu
+
+    classDef pub fill:#e8f1fb,stroke:#0078d4,color:#111
+    classDef priv fill:#e8f5e9,stroke:#2e7d32,color:#111
+    classDef obsc fill:#fff4e5,stroke:#b26a00,color:#111
+    classDef ext fill:#ffffff,stroke:#666,color:#111
+    classDef plain fill:#ffffff,stroke:#999,color:#111
+    class sitio,func pub
+    class tabla priv
+    class appi,dash,alerta,mail obsc
+    class visitante,entra,pr,deploy ext
+    class idgh,tfstate,fnstore,tofu plain
+
+    style github fill:#f6f8fa,stroke:#999,color:#111
+    style azure fill:#f7f9fc,stroke:#0078d4,color:#111
+    style rgstate fill:#ffffff,stroke:#bbb,color:#111
+    style rgdev fill:#ffffff,stroke:#bbb,color:#111
+    style publico fill:#f3f8fe,stroke:#0078d4,stroke-dasharray:4 3,color:#111
+    style privado fill:#f3faf3,stroke:#2e7d32,stroke-dasharray:4 3,color:#111
+    style obs fill:#fffaf2,stroke:#b26a00,stroke-dasharray:4 3,color:#111
+```
