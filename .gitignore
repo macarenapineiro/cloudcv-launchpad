@@ -1,9 +1,6 @@
 .terraform/
 *.tfstate*
 *.tfplan
-<<<<<<< HEAD
+.DS_Store
 .venv/
 __pycache__/
-=======
->>>>>>> main
-.DS_Store
