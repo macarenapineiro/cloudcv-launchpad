@@ -104,7 +104,7 @@ resource "azurerm_function_app_flex_consumption" "contador" {
   runtime_name           = "python"
   runtime_version        = var.python_version
   maximum_instance_count = var.max_instances
-  instance_memory_in_mb  = 2048
+  instance_memory_in_mb  = var.instance_memory_mb
 
   https_only = true # rechaza las llamadas por HTTP, solo acepta HTTPS
 

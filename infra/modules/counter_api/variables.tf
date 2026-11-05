@@ -60,6 +60,17 @@ variable "python_version" {
   }
 }
 
+variable "instance_memory_mb" {
+  description = "Memoria de cada instancia de la Function. Azure cobra por memoria × tiempo, así que menos memoria es más barato. Un contador no necesita más de 512 MB."
+  type        = number
+  default     = 512
+
+  validation {
+    condition     = contains([512, 2048, 4096], var.instance_memory_mb)
+    error_message = "Flex Consumption solo permite 512, 2048 o 4096 MB."
+  }
+}
+
 variable "max_instances" {
   description = "Máximo de copias de la Function que Azure puede levantar a la vez. Limita el gasto si hay mucho tráfico."
   type        = number

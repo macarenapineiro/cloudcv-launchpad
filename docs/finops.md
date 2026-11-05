@@ -46,7 +46,7 @@ Para verlo entramos a **Cost Management → Análisis de costos** y filtramos po
 
 Para la proyección pensamos en el peor caso: que cada visita sea una llamada aparte y que cada una cobre el mínimo de 1 segundo. En la práctica debería salir más barato, porque una misma instancia puede atender varias visitas a la vez.
 
-| Visitas por mes | Function con 2 GB (como está hoy) | Function con 512 MB | Storage, logs y alerta | Total aproximado |
+| Visitas por mes | Function con 2 GB (como estaba al principio) | Function con 512 MB (como está ahora) | Storage, logs y alerta | Total aproximado |
 | --- | --- | --- | --- | --- |
 | 1.000 | USD 0 | USD 0 | ~USD 1,50 | **~USD 1,50** |
 | 100.000 | ~USD 2,60 | USD 0 | ~USD 2 | **Entre USD 2 y 4,60** |
@@ -64,6 +64,7 @@ Con tantas visitas también habría que subir el tope diario de logs, que hoy es
 - **Elegimos Storage LRS,** la replicación más barata. La GRS cuesta el doble y para este proyecto no hace falta.
 - **Trabajamos en una sola región,** `canadacentral`, que además es más barata que Brasil.
 - **Le pusimos un tope a la Function:** como máximo 40 instancias a la vez, para que un pico de visitas no se convierta en un pico de gasto.
+- **Bajamos la memoria de la Function de 2 GB a 512 MB.** Para un contador no hacen falta 2 GB, y como Azure cobra por memoria × tiempo, cada visita cuesta la cuarta parte. Con un millón de visitas por mes, el costo de la Function baja de unos USD 50 a unos USD 11.
 - **Le pusimos un tope a los logs:** 0,1 GB por día y 30 días de guardado. El enunciado pide 7 días, pero 30 es lo mínimo que permite Log Analytics.
 - **Etiquetamos todos los recursos** con `project`, `team`, `env` y `owner`, para poder ver cuánto gasta el proyecto.
 - **Creamos una alerta de presupuesto** de USD 10, con avisos al 50, 80 y 100 %.
@@ -71,7 +72,6 @@ Con tantas visitas también habría que subir el tope diario de logs, que hoy es
 
 ### Lo que podríamos mejorar
 
-- **Bajar la memoria de la Function a 512 MB.** Para un contador no hacen falta 2 GB, y con un millón de visitas el costo de la Function bajaría de unos USD 50 a unos USD 11.
 - **Que la alerta revise cada 15 minutos en vez de cada 5.** Saldría más barata, aunque nos enteraríamos de los errores un poco más tarde.
 
 ### Sobre los datos de prueba
