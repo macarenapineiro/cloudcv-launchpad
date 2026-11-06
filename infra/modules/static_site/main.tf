@@ -48,6 +48,23 @@ locals {
   ])
 }
 
+# Quién está corriendo OpenTofu (nosotras o el pipeline).
+data "azurerm_client_config" "actual" {}
+
+# Permiso para subir los archivos al sitio con nuestra identidad, sin usar las claves de la cuenta.
+# Hace falta porque el provider usa storage_use_azuread = true.
+resource "azurerm_role_assignment" "subir_archivos" {
+  scope                = azurerm_storage_account.sitio.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = data.azurerm_client_config.actual.object_id
+}
+
+# Azure tarda un poco en activar un permiso nuevo: esperamos antes de subir archivos.
+resource "time_sleep" "esperar_permiso" {
+  create_duration = "60s"
+  depends_on      = [azurerm_role_assignment.subir_archivos]
+}
+
 # Sube cada archivo del sitio al contenedor $web.
 resource "azurerm_storage_blob" "archivos" {
   for_each = local.archivos
@@ -60,5 +77,18 @@ resource "azurerm_storage_blob" "archivos" {
   content_type           = lookup(local.content_types, reverse(split(".", each.value))[0], "application/octet-stream")
   content_md5            = filemd5("${var.site_path}/${each.value}") # si el archivo cambia, se vuelve a subir
 
-  depends_on = [azurerm_storage_account_static_website.sitio]
+  depends_on = [azurerm_storage_account_static_website.sitio, time_sleep.esperar_permiso]
+}
+
+# config.js: le dice a la página cuál es la dirección de la API del contador.
+# Lo genera OpenTofu, así la dirección nunca se escribe a mano en el código.
+resource "azurerm_storage_blob" "config" {
+  name                   = "config.js"
+  storage_account_name   = azurerm_storage_account.sitio.name
+  storage_container_name = "$web"
+  type                   = "Block"
+  content_type           = "application/javascript"
+  source_content         = "window.API_URL = ${jsonencode(var.api_url)};\n"
+
+  depends_on = [azurerm_storage_account_static_website.sitio, time_sleep.esperar_permiso]
 }

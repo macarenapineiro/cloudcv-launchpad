@@ -29,6 +29,12 @@ variable "site_path" {
   type        = string
 }
 
+variable "api_url" {
+  description = "Dirección de la API del contador; se escribe en config.js. Vacío = el contador muestra un guion."
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   description = "Etiquetas obligatorias: project, team, env y owner."
   type        = map(string)
