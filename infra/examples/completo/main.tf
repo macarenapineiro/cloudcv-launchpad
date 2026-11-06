@@ -41,6 +41,13 @@ provider "azapi" {
   subscription_id = "df8b465b-e672-406d-8d2f-bd660f8a6d2e"
 }
 
+# Los mails no se escriben en el código porque el repo es público.
+# Se pasan en un archivo terraform.tfvars (ignorado por git), copiando terraform.tfvars.example.
+variable "alert_emails" {
+  description = "Mails que reciben el aviso de la alerta de errores."
+  type        = list(string)
+}
+
 locals {
   tags = {
     project = "cloudcv"
@@ -92,11 +99,8 @@ module "monitoring" {
   resource_group_name     = azurerm_resource_group.prueba.name
   location                = azurerm_resource_group.prueba.location
   application_insights_id = module.counter_api.application_insights_id
-  alert_emails = [
-    "macarena.pineiro@correo.ucu.edu.uy",
-    "juliana.hernandez@correo.ucu.edu.uy",
-  ]
-  tags = local.tags
+  alert_emails            = var.alert_emails
+  tags                    = local.tags
 }
 
 output "sitio" {

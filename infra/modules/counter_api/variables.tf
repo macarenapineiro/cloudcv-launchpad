@@ -60,6 +60,17 @@ variable "python_version" {
   }
 }
 
+variable "instance_memory_mb" {
+  description = "Memoria de cada instancia de la Function. Azure cobra por memoria × tiempo, así que menos memoria es más barato. Un contador no necesita más de 512 MB."
+  type        = number
+  default     = 512
+
+  validation {
+    condition     = contains([512, 2048, 4096], var.instance_memory_mb)
+    error_message = "Flex Consumption solo permite 512, 2048 o 4096 MB."
+  }
+}
+
 variable "max_instances" {
   description = "Máximo de copias de la Function que Azure puede levantar a la vez. Limita el gasto si hay mucho tráfico."
   type        = number
@@ -72,13 +83,24 @@ variable "max_instances" {
 }
 
 variable "log_retention_days" {
-  description = "Días que se guardan los logs. 30 es el mínimo que acepta Azure para este servicio."
+  description = "Retención por defecto del workspace. 30 es el mínimo; las tablas de la Function se bajan a 7 con app_logs_retention_days."
   type        = number
   default     = 30
 
   validation {
     condition     = var.log_retention_days >= 30 && var.log_retention_days <= 90
     error_message = "Azure acepta entre 30 y 90 días sin costo extra de retención."
+  }
+}
+
+variable "app_logs_retention_days" {
+  description = "Días que se guardan los datos de la Function (pedidos, errores, trazas). El enunciado pide 7."
+  type        = number
+  default     = 7
+
+  validation {
+    condition     = var.app_logs_retention_days >= 4 && var.app_logs_retention_days <= 730
+    error_message = "Log Analytics permite entre 4 y 730 días por tabla."
   }
 }
 

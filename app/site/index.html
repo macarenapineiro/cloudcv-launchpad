@@ -3,56 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nombre Apellido | CV</title>
+  <title>Lucía Fernández | CV</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="cv">
 
     <header class="cv-header">
-      <h1>Nombre Apellido</h1>
-      <p class="rol">Estudiante de Ingeniería en Informática · UCU</p>
+      <h1>Lucía Fernández</h1>
+      <p class="rol">Estudiante de Ingeniería en Informática · Interesada en Cloud y DevOps</p>
       <p class="contacto">
-        <a href="mailto:tu-mail@correo.ucu.edu.uy">tu-mail@correo.ucu.edu.uy</a> ·
-        <a href="https://github.com/tu-usuario">GitHub</a> ·
-        <a href="https://linkedin.com/in/tu-usuario">LinkedIn</a>
+        <a href="mailto:lucia.fernandez@example.com">lucia.fernandez@example.com</a> ·
+        Montevideo, Uruguay
       </p>
     </header>
 
     <section>
       <h2>Sobre mí</h2>
-      <p>Dos o tres oraciones sobre vos: qué estudiás, qué te interesa y qué tipo de trabajo buscás.</p>
+      <p>Estudiante de cuarto año de Ingeniería en Informática. Me interesa automatizar infraestructura en la nube y construir sistemas seguros y baratos de mantener. Busco una pasantía en un equipo de plataforma o DevOps.</p>
     </section>
 
     <section>
       <h2>Experiencia</h2>
       <div class="item">
-        <h3>Puesto · Lugar</h3>
+        <h3>Desarrolladora web freelance</h3>
         <p class="fecha">2025 – actualidad</p>
-        <p>Qué hacés o hiciste ahí, en una o dos líneas.</p>
+        <p>Armo sitios simples para comercios de barrio y los publico en la nube con bajo costo de mantenimiento.</p>
+      </div>
+      <div class="item">
+        <h3>Pasante de soporte técnico · Empresa de software</h3>
+        <p class="fecha">2024</p>
+        <p>Atendí incidencias de usuarios y armé guías internas para resolver los problemas más comunes.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Proyectos</h2>
+      <div class="item">
+        <h3>CloudCV Launchpad</h3>
+        <p class="fecha">2026</p>
+        <p>Este mismo sitio: un CV en Azure con contador de visitas, creado con OpenTofu y desplegado con GitHub Actions. Sin credenciales en el repositorio (OIDC e identidades administradas), con dashboard, alerta de errores y un costo de casi cero.</p>
       </div>
     </section>
 
     <section>
       <h2>Formación</h2>
       <div class="item">
-        <h3>Ingeniería en Informática · Universidad Católica del Uruguay</h3>
-        <p class="fecha">Año de ingreso – en curso</p>
+        <h3>Ingeniería en Informática</h3>
+        <p class="fecha">2023 – en curso</p>
       </div>
     </section>
 
     <section>
       <h2>Habilidades</h2>
       <ul class="habilidades">
-        <li>C#</li>
         <li>Azure</li>
-        <li>Terraform</li>
-        <li>Git y GitHub Actions</li>
+        <li>OpenTofu / Terraform</li>
+        <li>GitHub Actions</li>
+        <li>Python</li>
+        <li>C#</li>
+        <li>Git</li>
       </ul>
     </section>
 
     <footer class="contador">
       Este CV fue visitado <span id="visitas">…</span> veces
+      <p class="aviso">CV de ejemplo para el proyecto CloudCV Launchpad. La persona y sus datos son ficticios.</p>
     </footer>
 
   </main>
