@@ -1,0 +1,77 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TOFU_VERSION: "1.13.2"
+
+jobs:
+  formato-y-validacion:
+    name: fmt y validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
+      - name: tofu fmt
+        run: tofu fmt -check -recursive -diff infra
+      - name: tofu validate
+        run: |
+          for d in infra/bootstrap infra/envs/dev infra/modules/* infra/examples/*; do
+            ls "$d"/*.tf >/dev/null 2>&1 || continue
+            echo "::group::validate $d"
+            tofu -chdir="$d" init -backend=false -input=false
+            tofu -chdir="$d" validate
+            echo "::endgroup::"
+          done
+
+  tflint:
+    name: tflint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: terraform-linters/setup-tflint@v4
+      - name: tflint
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          tflint --init --config "$GITHUB_WORKSPACE/.tflint.hcl"
+          tflint --recursive --config "$GITHUB_WORKSPACE/.tflint.hcl" --chdir infra
+
+  checkov:
+    name: Checkov
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Checkov
+        run: |
+          pip install checkov
+          checkov -d infra --framework terraform --compact --quiet
+
+  tests-funcion:
+    name: tests de la Function
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: instalar dependencias
+        if: ${{ hashFiles('app/function/requirements.txt') != '' }}
+        run: pip install -r app/function/requirements.txt pytest
+      - name: pytest
+        if: ${{ hashFiles('app/function/requirements.txt') != '' }}
+        run: python -m pytest app/function/tests
