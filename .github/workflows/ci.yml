@@ -46,7 +46,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           tflint --init --config "$GITHUB_WORKSPACE/.tflint.hcl"
-          tflint --recursive --config "$GITHUB_WORKSPACE/.tflint.hcl" --chdir infra
+          tflint --recursive --config "$GITHUB_WORKSPACE/.tflint.hcl" --chdir infra --minimum-failure-severity=error
 
   checkov:
     name: Checkov
