@@ -10,7 +10,6 @@ resource "azurerm_storage_account" "sitio" {
   #checkov:skip=CKV_AZURE_59:El sitio del CV es público a propósito: lo tienen que poder ver los reclutadores.
   #checkov:skip=CKV2_AZURE_33:Un sitio público no puede estar detrás de un private endpoint (y costaría ~USD 7/mes).
   #checkov:skip=CKV_AZURE_206:LRS a propósito: el contenido se vuelve a subir desde el repo en cada deploy (FinOps).
-  #checkov:skip=CKV2_AZURE_40:La clave queda habilitada por cómo el provider configura el sitio estático; las subidas del pipeline usan Azure AD (storage_use_azuread).
   #checkov:skip=CKV_AZURE_33:No usamos colas; los logs de Storage tienen costo y no aportan para este caso.
   #checkov:skip=CKV2_AZURE_1:El contenido es público (un CV); una clave de cifrado propia exige Key Vault y no aporta.
   name                     = "${var.prefix}web${random_string.sufijo.result}"
@@ -22,7 +21,8 @@ resource "azurerm_storage_account" "sitio" {
   https_traffic_only_enabled      = true     # solo HTTPS
   min_tls_version                 = "TLS1_2" # versión mínima segura de TLS
   allow_nested_items_to_be_public = false    # ningún contenedor público, salvo el del sitio ($web)
-  shared_access_key_enabled       = true     # ver el checkov:skip CKV2_AZURE_40 de arriba
+  shared_access_key_enabled       = false    # sin claves: se sube con Azure AD (storage_use_azuread)
+  default_to_oauth_authentication = true
 
   # Borrado suave: si algo se borra por error, se puede recuperar durante 7 días.
   blob_properties {
@@ -32,11 +32,6 @@ resource "azurerm_storage_account" "sitio" {
     container_delete_retention_policy {
       days = 7
     }
-  }
-
-  # Si alguna vez se genera un link temporal (SAS), que venza en 1 día como máximo.
-  sas_policy {
-    expiration_period = "01.00:00:00"
   }
 
   tags = var.tags

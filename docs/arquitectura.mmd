@@ -19,7 +19,7 @@ flowchart LR
 
             subgraph publico["Zona pública · solo HTTPS"]
                 sitio["Sitio del CV<br/>Storage static website"]
-                func["Azure Function (Python)<br/>Flex Consumption<br/>CORS: solo el sitio"]
+                func["Azure Function (Python)<br/>Flex Consumption<br/>CORS: en el navegador,<br/>solo desde el sitio"]
             end
 
             subgraph privado["Solo con identidad y rol · sin claves"]

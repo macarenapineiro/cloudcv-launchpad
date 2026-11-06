@@ -7,7 +7,7 @@
 **Lo que hace el visitante (flechas 1 a 3):**
 
 1. El navegador carga el CV desde una cuenta de Storage con *static website*, siempre por HTTPS.
-2. El JavaScript del sitio llama a la Function con un `POST /api/visitas`. La Function solo acepta llamadas que vengan del sitio (CORS) y rechaza las que no son HTTPS.
+2. El JavaScript del sitio llama a la Function con un `POST /api/visitas`. La Function rechaza lo que no sea HTTPS. Además tiene CORS: el navegador solo deja usar la API desde la página del CV, así otra página no puede llamarla en nombre de quien la visita. El CORS no frena a quien llama directo (por ejemplo, con `curl`); lo peor que puede hacer es sumar visitas, porque la API no expone ningún otro dato.
 3. La Function suma la visita en la tabla `visitas`. Entra con su **identidad administrada** y el rol *Storage Table Data Contributor*, que vale **solo para esa tabla**. La cuenta de datos no tiene claves.
 
 **Lo que hace el pipeline (abajo):**
@@ -21,10 +21,14 @@
 
 | Zona (color) | Qué hay | Cómo se protege |
 | --- | --- | --- |
-| Pública (azul) | Sitio del CV y Function | Solo HTTPS; la Function solo acepta llamadas del sitio |
+| Pública (azul) | Sitio del CV y Function | Solo HTTPS; en el navegador, la API solo se puede usar desde el sitio (CORS) |
 | Privada (verde) | Tabla del contador | Sin claves: solo entra la identidad de la Function con su rol |
 | Observabilidad (naranja) | Logs, dashboard y alerta | Logs con tope diario y 30 días de guardado |
 | State (`rg-cloudcv-tfstate`) | State remoto e identidad del pipeline | Sin claves, versionado y borrado suave |
+
+## Qué queda después de un destroy
+
+El destroy de `envs/dev` borra todo lo de `rg-cloudcv-dev`. Lo del bootstrap (`rg-cloudcv-tfstate`) **no se destruye**: el state remoto y la identidad del pipeline tienen que seguir existiendo para poder volver a crear el entorno. Su costo es de centavos por mes (una cuenta de Storage con un archivo chico). Tampoco se borra el resource group `rg-cloudcv-dev`, que lo crea el bootstrap; queda vacío, salvo un *action group* que Azure crea solo junto con Application Insights y que no tiene costo.
 
 ## Código del diagrama
 
@@ -52,7 +56,7 @@ flowchart LR
 
             subgraph publico["Zona pública · solo HTTPS"]
                 sitio["Sitio del CV<br/>Storage static website"]
-                func["Azure Function (Python)<br/>Flex Consumption<br/>CORS: solo el sitio"]
+                func["Azure Function (Python)<br/>Flex Consumption<br/>CORS: en el navegador,<br/>solo desde el sitio"]
             end
 
             subgraph privado["Solo con identidad y rol · sin claves"]

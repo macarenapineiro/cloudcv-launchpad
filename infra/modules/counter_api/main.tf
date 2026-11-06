@@ -66,6 +66,24 @@ resource "azurerm_log_analytics_workspace" "logs" {
   tags = var.tags
 }
 
+# Retención de 7 días en las tablas donde Application Insights guarda los datos de la Function.
+# El workspace exige un mínimo de 30 días, pero cada tabla se puede bajar hasta 4.
+# Este recurso no crea las tablas (ya existen en el workspace): solo les cambia la retención.
+resource "azurerm_log_analytics_workspace_table" "app" {
+  for_each = toset([
+    "AppRequests", "AppTraces", "AppExceptions", "AppDependencies", "AppMetrics",
+    "AppPerformanceCounters", "AppSystemEvents", "AppAvailabilityResults",
+    "AppBrowserTimings", "AppEvents", "AppPageViews",
+  ])
+
+  name                    = each.value
+  workspace_id            = azurerm_log_analytics_workspace.logs.id
+  retention_in_days       = var.app_logs_retention_days
+  total_retention_in_days = var.app_logs_retention_days
+
+  depends_on = [azurerm_application_insights.insights]
+}
+
 resource "azurerm_application_insights" "insights" {
   name                = "appi-${var.prefix}-${random_string.sufijo.result}"
   resource_group_name = var.resource_group_name

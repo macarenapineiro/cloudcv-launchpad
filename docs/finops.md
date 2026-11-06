@@ -44,6 +44,8 @@ Para verlo entramos a **Cost Management → Análisis de costos** y filtramos po
 
 ## Cuánto costaría con muchas visitas
 
+*(Pendiente: confirmar estos números en la [calculadora de Azure](https://azure.microsoft.com/pricing/calculator/), región Canada Central, y pegar acá el link de la estimación guardada. Lo que sigue es nuestra cuenta a mano, que usamos para entender de dónde sale cada costo.)*
+
 Para la proyección pensamos en el peor caso: que cada visita sea una llamada aparte y que cada una cobre el mínimo de 1 segundo. En la práctica debería salir más barato, porque una misma instancia puede atender varias visitas a la vez.
 
 | Visitas por mes | Function con 2 GB (como estaba al principio) | Function con 512 MB (como está ahora) | Storage, logs y alerta | Total aproximado |
@@ -65,12 +67,14 @@ Con tantas visitas también habría que subir el tope diario de logs, que hoy es
 - **Trabajamos en una sola región,** `canadacentral`, que además es más barata que Brasil.
 - **Le pusimos un tope a la Function:** como máximo 40 instancias a la vez, para que un pico de visitas no se convierta en un pico de gasto.
 - **Bajamos la memoria de la Function de 2 GB a 512 MB.** Para un contador no hacen falta 2 GB, y como Azure cobra por memoria × tiempo, cada visita cuesta la cuarta parte. Con un millón de visitas por mes, el costo de la Function baja de unos USD 50 a unos USD 11.
-- **Le pusimos un tope a los logs:** 0,1 GB por día y 30 días de guardado. El enunciado pide 7 días, pero 30 es lo mínimo que permite Log Analytics.
+- **Le pusimos un tope a los logs:** 0,1 GB por día. Los datos de la Function (pedidos, errores, trazas) se guardan 7 días, como pide el enunciado. El workspace en sí no acepta menos de 30, así que la retención de 7 días se pone en cada tabla. Ojo: según Microsoft, bajar de 31 días no ahorra plata, porque esos días ya vienen incluidos en el precio. Lo hacemos para cumplir el enunciado y no guardar datos más de lo necesario.
 - **Etiquetamos todos los recursos** con `project`, `team`, `env` y `owner`, para poder ver cuánto gasta el proyecto.
-- **Creamos una alerta de presupuesto** de USD 10, con avisos al 50, 80 y 100 %.
-- **Destruimos todo al terminar cada prueba.** Las capturas están en `docs/evidencias/`.
+- *(Pendiente)* **Alerta de presupuesto** de USD 10, con avisos al 50, 80 y 100 %. La agregamos en `envs/dev` y la marcamos como hecha cuando esté creada.
+- **Destruimos todo al terminar cada prueba.** *(Pendiente: subir las capturas a `docs/evidencias/`.)* El destroy no toca el bootstrap (`rg-cloudcv-tfstate`): el state y la identidad del pipeline quedan, porque hacen falta para volver a crear el entorno. Cuestan centavos por mes.
 
 ### Lo que podríamos mejorar
+
+- **Apagar la clave de la cuenta interna de la Function.** Es la única cuenta que todavía la tiene, por un error conocido del provider. Cuando lo corrijan, se puede apagar como en las otras.
 
 - **Que la alerta revise cada 15 minutos en vez de cada 5.** Saldría más barata, aunque nos enteraríamos de los errores un poco más tarde.
 
