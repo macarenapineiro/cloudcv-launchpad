@@ -29,6 +29,7 @@ jobs:
       ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_alert_emails: ${{ secrets.ALERT_EMAILS }}
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +47,7 @@ jobs:
         working-directory: infra/envs/dev
         continue-on-error: true
         shell: bash
-        run: tofu plan -input=false -no-color -lock-timeout=120s 2>&1 | tee "$GITHUB_WORKSPACE/plan.txt"
+        run: tofu plan -input=false -no-color -lock-timeout=120s 2>&1 | sed -E 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/***@***/g' | tee "$GITHUB_WORKSPACE/plan.txt"
 
       - name: publicar el plan en el PR
         if: always()
