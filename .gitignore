@@ -2,9 +2,10 @@
 *.tfstate*
 *.tfplan
 .DS_Store
-
-# Valores locales (mails del presupuesto): no se suben, el repo es público
-*.auto.tfvars
 .venv/
 __pycache__/
 
+# Valores locales (mails): no se suben, el repo es público
+*.tfvars
+*.auto.tfvars
+!*.tfvars.example
