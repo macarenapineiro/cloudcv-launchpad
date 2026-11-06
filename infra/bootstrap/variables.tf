@@ -44,3 +44,12 @@ variable "github_environment" {
   type        = string
   default     = "dev"
 }
+
+variable "state_users" {
+  description = "Integrantes del equipo con acceso de lectura y escritura al state (nombre => object ID en Microsoft Entra ID). Son identificadores, no secretos."
+  type        = map(string)
+  default = {
+    juliana  = "76b5b5a8-8b0e-428f-af6c-36a1496d5f82"
+    macarena = "afa30903-4771-475e-857c-725882688b05"
+  }
+}
