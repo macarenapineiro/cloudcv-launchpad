@@ -5,3 +5,6 @@
 
 # Valores locales (mails del presupuesto): no se suben, el repo es público
 *.auto.tfvars
+.venv/
+__pycache__/
+

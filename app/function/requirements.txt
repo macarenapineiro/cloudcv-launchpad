@@ -1,0 +1,3 @@
+azure-functions==1.*
+azure-data-tables==12.*
+azure-identity==1.*
