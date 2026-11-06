@@ -86,6 +86,19 @@ module "counter_api" {
   tags                = local.tags
 }
 
+module "monitoring" {
+  source = "../../modules/monitoring"
+
+  resource_group_name     = azurerm_resource_group.prueba.name
+  location                = azurerm_resource_group.prueba.location
+  application_insights_id = module.counter_api.application_insights_id
+  alert_emails = [
+    "macarena.pineiro@correo.ucu.edu.uy",
+    "juliana.hernandez@correo.ucu.edu.uy",
+  ]
+  tags = local.tags
+}
+
 output "sitio" {
   value = module.static_site.url
 }
