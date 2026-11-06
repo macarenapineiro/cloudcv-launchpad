@@ -99,3 +99,13 @@ resource "azurerm_role_assignment" "rbac_admin_dev" {
     )
   EOT
 }
+
+# Permiso de cada integrante del equipo sobre el contenedor del state,
+# para poder correr tofu plan desde su computadora.
+resource "azurerm_role_assignment" "state_users" {
+  for_each             = var.state_users
+  scope                = azurerm_storage_container.tfstate.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = each.value
+  principal_type       = "User"
+}
