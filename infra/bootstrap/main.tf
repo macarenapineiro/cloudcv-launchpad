@@ -22,6 +22,11 @@ resource "azurerm_resource_group" "tfstate" {
 }
 
 resource "azurerm_storage_account" "tfstate" {
+      #checkov:skip=CKV_AZURE_59:El state lo leen los runners de GitHub y nuestras computadoras por internet y no hay VNet. La cuenta no tiene claves (solo Azure AD) y ningún blob es público.
+  #checkov:skip=CKV_AZURE_206:LRS a propósito. El state es un archivo chico, con versionado y borrado suave de 7 días; replicar a otra región no aporta en un proyecto de pruebas (FinOps).
+  #checkov:skip=CKV_AZURE_33:No usamos colas. Los logs de Storage tienen costo y no aportan para este caso.
+  #checkov:skip=CKV2_AZURE_33:Un private endpoint exige VNet y cuesta unos USD 7 por mes, fuera del presupuesto.
+  #checkov:skip=CKV2_AZURE_1:Los datos ya están cifrados con claves de Microsoft. Una clave propia exige Key Vault y suma costo.
   name                = "${var.prefix}tfstate${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.tfstate.name
   location            = azurerm_resource_group.tfstate.location
@@ -46,6 +51,7 @@ resource "azurerm_storage_account" "tfstate" {
 }
 
 resource "azurerm_storage_container" "tfstate" {
+      #checkov:skip=CKV2_AZURE_21:Los logs de lectura de Storage tienen costo. El contenedor es privado y solo el pipeline y las dos integrantes del equipo tienen rol sobre él.
   name                  = "tfstate"
   storage_account_id    = azurerm_storage_account.tfstate.id
   container_access_type = "private"
