@@ -1,6 +1,6 @@
-// Dirección de la Azure Function que cuenta las visitas.
-// La completamos cuando la función esté creada.
-const API_URL = "";
+// La dirección de la Azure Function la escribe OpenTofu en config.js (window.API_URL).
+// Si no hay dirección (por ejemplo, abriendo el HTML desde la compu), el contador muestra "—".
+const API_URL = window.API_URL || "";
 
 async function mostrarVisitas() {
   const span = document.getElementById("visitas");

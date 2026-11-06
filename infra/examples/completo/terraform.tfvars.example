@@ -1,0 +1,6 @@
+# Copiar este archivo como terraform.tfvars y poner los mails reales.
+# terraform.tfvars está en el .gitignore: no se sube al repo.
+alert_emails = [
+  "persona1@example.com",
+  "persona2@example.com",
+]

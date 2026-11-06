@@ -7,6 +7,11 @@ resource "random_string" "sufijo" {
 
 # Cuenta de Storage para los datos (separada de la del sitio, que es pública).
 resource "azurerm_storage_account" "datos" {
+  #checkov:skip=CKV_AZURE_206:LRS a propósito: es un contador de visitas de un CV y GRS duplica el costo (FinOps).
+  #checkov:skip=CKV_AZURE_59:La Function usa la red pública (Flex sin VNet); el acceso igual exige identidad y rol, porque la cuenta no tiene claves.
+  #checkov:skip=CKV2_AZURE_33:Un private endpoint exige VNet y cuesta ~USD 7/mes, fuera del presupuesto. La cuenta no tiene claves: solo entra la identidad de la Function.
+  #checkov:skip=CKV_AZURE_33:No usamos colas; los logs de Storage tienen costo y no aportan para este caso.
+  #checkov:skip=CKV2_AZURE_1:Los datos ya están cifrados con claves de Microsoft; una clave propia exige Key Vault y no aplica a un contador público.
   name                     = "${var.prefix}data${random_string.sufijo.result}"
   resource_group_name      = var.resource_group_name
   location                 = var.location
@@ -21,6 +26,16 @@ resource "azurerm_storage_account" "datos" {
   # La Function va a usar su identidad administrada para leer y escribir la tabla.
   shared_access_key_enabled       = false
   default_to_oauth_authentication = true
+
+  # Borrado suave: si algo se borra por error, se puede recuperar durante 7 días.
+  blob_properties {
+    delete_retention_policy {
+      days = 7
+    }
+    container_delete_retention_policy {
+      days = 7
+    }
+  }
 
   tags = var.tags
 }

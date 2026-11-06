@@ -31,7 +31,7 @@ resource "azurerm_federated_identity_credential" "main" {
   parent_id = azurerm_user_assigned_identity.github.id
   audience  = local.github_audience
   issuer    = local.github_issuer
-  subject   = "repo:${var.github_repo}:ref:refs/heads/main"
+  subject   = "${local.github_subject_prefix}:ref:refs/heads/main"
 }
 
 resource "azurerm_federated_identity_credential" "pull_request" {
@@ -39,7 +39,7 @@ resource "azurerm_federated_identity_credential" "pull_request" {
   parent_id = azurerm_user_assigned_identity.github.id
   audience  = local.github_audience
   issuer    = local.github_issuer
-  subject   = "repo:${var.github_repo}:pull_request"
+  subject   = "${local.github_subject_prefix}:pull_request"
 
   depends_on = [azurerm_federated_identity_credential.main]
 }
@@ -49,7 +49,7 @@ resource "azurerm_federated_identity_credential" "environment" {
   parent_id = azurerm_user_assigned_identity.github.id
   audience  = local.github_audience
   issuer    = local.github_issuer
-  subject   = "repo:${var.github_repo}:environment:${var.github_environment}"
+  subject   = "${local.github_subject_prefix}:environment:${var.github_environment}"
 
   depends_on = [azurerm_federated_identity_credential.pull_request]
 }
@@ -98,4 +98,14 @@ resource "azurerm_role_assignment" "rbac_admin_dev" {
      )
     )
   EOT
+}
+
+# Permiso de cada integrante del equipo sobre el contenedor del state,
+# para poder correr tofu plan desde su computadora.
+resource "azurerm_role_assignment" "state_users" {
+  for_each             = var.state_users
+  scope                = azurerm_storage_container.tfstate.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = each.value
+  principal_type       = "User"
 }
