@@ -1,0 +1,74 @@
+name: plan
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: plan-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  TOFU_VERSION: "1.13.2"
+
+jobs:
+  plan:
+    name: plan de envs/dev
+    # Los PR de forks no reciben token OIDC: este job solo corre para ramas del propio repo.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
+          tofu_wrapper: false
+
+      - name: tofu init
+        working-directory: infra/envs/dev
+        run: tofu init -input=false
+
+      - name: tofu plan
+        id: plan
+        working-directory: infra/envs/dev
+        continue-on-error: true
+        shell: bash
+        run: tofu plan -input=false -no-color -lock-timeout=120s 2>&1 | tee "$GITHUB_WORKSPACE/plan.txt"
+
+      - name: publicar el plan en el PR
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          RESULTADO: ${{ steps.plan.outcome }}
+        with:
+          script: |
+            const fs = require('fs');
+            let plan = fs.existsSync('plan.txt') ? fs.readFileSync('plan.txt', 'utf8') : 'No se generó la salida del plan.';
+            if (plan.length > 60000) plan = plan.slice(0, 60000) + '\n... (recortado)';
+            const estado = process.env.RESULTADO === 'success' ? 'OK' : 'ERROR';
+            const marca = '<!-- plan-envs-dev -->';
+            const cuerpo = `${marca}\n### Plan de \`infra/envs/dev\` (${estado})\n\n<details><summary>Ver el plan</summary>\n\n\`\`\`\n${plan}\n\`\`\`\n\n</details>`;
+            const { data: comentarios } = await github.rest.issues.listComments({ ...context.repo, issue_number: context.issue.number });
+            const previo = comentarios.find(c => c.body.includes(marca));
+            if (previo) {
+              await github.rest.issues.updateComment({ ...context.repo, comment_id: previo.id, body: cuerpo });
+            } else {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body: cuerpo });
+            }
+
+      - name: fallar si el plan falló
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
