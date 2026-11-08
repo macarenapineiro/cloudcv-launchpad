@@ -53,7 +53,7 @@ jobs:
         shell: bash
         run: tofu apply -input=false -auto-approve -no-color -lock-timeout=120s 2>&1 | sed -E 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/***@***/g'
 
-            - name: nombre de la Function
+      - name: nombre de la Function
         id: fn
         working-directory: infra/envs/dev
         run: echo "nombre=$(tofu output -raw function_app_name)" >> "$GITHUB_OUTPUT"
