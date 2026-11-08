@@ -1,5 +1,5 @@
 # Para correr tofu plan desde una compu: copiar como terraform.tfvars y poner los mails reales.
-# terraform.tfvars está en el .gitignore. En el pipeline, los mails vienen de la variable ALERT_EMAILS del repo.
+# terraform.tfvars está en el .gitignore. En el pipeline, los mails vienen del secret ALERT_EMAILS del repo.
 alert_emails = [
   "persona1@example.com",
   "persona2@example.com",
