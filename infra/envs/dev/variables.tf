@@ -32,3 +32,8 @@ variable "owner" {
   type        = string
   default     = "juliana.hernandez"
 }
+
+variable "alert_emails" {
+  description = "Mails que reciben el aviso de la alerta de errores. No se escriben en el código: en el pipeline vienen del secret ALERT_EMAILS del repo y, en una compu, de un terraform.tfvars (ignorado por git)."
+  type        = list(string)
+}

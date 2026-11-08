@@ -69,7 +69,7 @@ Con tantas visitas también habría que subir el tope diario de logs, que hoy es
 - **Bajamos la memoria de la Function de 2 GB a 512 MB.** Para un contador no hacen falta 2 GB, y como Azure cobra por memoria × tiempo, cada visita cuesta la cuarta parte. Con un millón de visitas por mes, el costo de la Function baja de unos USD 50 a unos USD 11.
 - **Le pusimos un tope a los logs:** 0,1 GB por día. Los datos de la Function (pedidos, errores, trazas) se guardan 7 días, como pide el enunciado. El workspace en sí no acepta menos de 30, así que la retención de 7 días se pone en cada tabla. Ojo: según Microsoft, bajar de 31 días no ahorra plata, porque esos días ya vienen incluidos en el precio. Lo hacemos para cumplir el enunciado y no guardar datos más de lo necesario.
 - **Etiquetamos todos los recursos** con `project`, `team`, `env` y `owner`, para poder ver cuánto gasta el proyecto.
-- *(Pendiente)* **Alerta de presupuesto** de USD 10, con avisos al 50, 80 y 100 %. La agregamos en `envs/dev` y la marcamos como hecha cuando esté creada.
+- **Creamos una alerta de presupuesto** de USD 10 sobre toda la suscripción, con avisos al 50, 80 y 100 %. Está en el bootstrap, así que no se borra cuando destruimos el entorno.
 - **Destruimos todo al terminar cada prueba.** *(Pendiente: subir las capturas a `docs/evidencias/`.)* El destroy no toca el bootstrap (`rg-cloudcv-tfstate`): el state y la identidad del pipeline quedan, porque hacen falta para volver a crear el entorno. Cuestan centavos por mes.
 
 ### Lo que podríamos mejorar
