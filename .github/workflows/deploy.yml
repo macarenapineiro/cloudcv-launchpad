@@ -1,0 +1,60 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/envs/dev/**"
+      - "infra/modules/**"
+      - "app/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+env:
+  TOFU_VERSION: "1.13.2"
+
+jobs:
+  apply:
+    name: apply de envs/dev
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # El environment dev exige la aprobación de una de las dos integrantes antes de correr.
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_alert_emails: ${{ secrets.ALERT_EMAILS }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
+          tofu_wrapper: false
+
+      - name: tofu init
+        working-directory: infra/envs/dev
+        run: tofu init -input=false
+
+      - name: tofu apply
+        working-directory: infra/envs/dev
+        shell: bash
+        run: tofu apply -input=false -auto-approve -no-color -lock-timeout=120s 2>&1 | sed -E 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/***@***/g'
+
+      - name: direcciones del despliegue
+        working-directory: infra/envs/dev
+        run: |
+          echo "sitio:   $(tofu output -raw sitio)"
+          echo "api:     $(tofu output -raw api_url)"

@@ -1,0 +1,50 @@
+name: destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmar:
+        description: 'Escribí "destruir" para borrar todo lo de envs/dev'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+env:
+  TOFU_VERSION: "1.13.2"
+
+jobs:
+  destroy:
+    name: destroy de envs/dev
+    if: github.ref == 'refs/heads/main' && github.event.inputs.confirmar == 'destruir'
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_alert_emails: ${{ secrets.ALERT_EMAILS }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
+          tofu_wrapper: false
+
+      - name: tofu init
+        working-directory: infra/envs/dev
+        run: tofu init -input=false
+
+      - name: tofu destroy
+        working-directory: infra/envs/dev
+        shell: bash
+        run: tofu destroy -input=false -auto-approve -no-color -lock-timeout=120s 2>&1 | sed -E 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/***@***/g'
