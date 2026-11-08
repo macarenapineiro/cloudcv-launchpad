@@ -48,7 +48,7 @@ Lo que el pipeline no puede hacer: nada a nivel suscripción (no registra provee
 | Cuenta del state | Sin claves | Solo entra Azure AD | Versionado y borrado suave de 7 días |
 | Cuenta de datos (tabla) | Sin claves | Solo entra la identidad de la Function | Borrado suave de 7 días |
 | Cuenta interna de la Function | Con clave (connection string) | El provider tiene un error conocido con identidades en Flex Consumption | La clave vive solo en Azure y en el state, nunca en el repo. No guarda datos del CV |
-| Cuenta del sitio | Con clave habilitada | Omisión de Checkov documentada en el código | Las subidas usan Azure AD |
+| Cuenta del sitio | Sin claves | Solo entra Azure AD; el único acceso público es la lectura de `$web` | Las subidas usan Azure AD |
 
 ## 5. Controles en GitHub
 
@@ -68,6 +68,7 @@ Lo que el pipeline no puede hacer: nada a nivel suscripción (no registra provee
 
 - Se eliminó una asignación huérfana (Contributor sobre la suscripción, con un principal que ya no existía) de una prueba manual.
 - Se redujo de 4 a 2 la lista de roles que el pipeline puede asignar: se sacaron Blob Data Owner y Queue Data Contributor, que ningún módulo usa.
+- Se apagaron las claves de la cuenta del sitio, que antes estaban habilitadas.
 
 ## 8. Cómo verificar
 
