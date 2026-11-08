@@ -1,0 +1,4 @@
+# Copiá este archivo como budget.auto.tfvars y poné los mails reales.
+budget_emails = [
+  "nombre.apellido@correo.ucu.edu.uy",
+]
