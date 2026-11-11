@@ -28,4 +28,21 @@ La página es pública: es un CV, la idea es que cualquiera lo pueda ver.
 * `docs/`: diagrama y documentación
 * `.github/workflows/`: los pasos automáticos de GitHub Actions
 
-### Como desplegar y destruir
+### Cómo desplegar y destruir
+El paso a paso completo está en [docs/runbook.md](docs/runbook.md). Resumen:
+
+**Desplegar**
+1. Abrir un Pull Request: el plan de OpenTofu aparece como comentario.
+2. Cuando la otra persona lo aprueba y se une a `main`, arranca el workflow `deploy`.
+3. El job espera aprobación del entorno `dev`: **Review deployments**, marcar `dev` y **Approve and deploy**.
+4. Crea la infraestructura (36 recursos, unos 4 minutos la primera vez) y sube el código de la Function. Al final imprime la dirección del sitio y de la API.
+5. Verificar: abrir el sitio y comprobar que el contador sube.
+
+**Destruir**
+1. Pestaña **Actions**, workflow **destroy**, **Run workflow**, rama `main`, y escribir `destruir` en el campo.
+2. Aprobar en **Review deployments**.
+3. Comprobar que quedó vacío: `az resource list --resource-group rg-cloudcv-dev -o table`.
+
+Lo que no se destruye, a propósito: el estado remoto y la identidad del pipeline (`rg-cloudcv-tfstate`) y el presupuesto. Cuestan centavos y el próximo despliegue los necesita.
+
+**Seguridad:** el repo es público, así que no hay mails ni claves en el código. Los mails de las alertas están en el secreto `ALERT_EMAILS` de GitHub y el pipeline entra a Azure con OIDC, sin contraseñas. Más detalle en [docs/iam.md](docs/iam.md).
