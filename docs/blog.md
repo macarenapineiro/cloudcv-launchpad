@@ -48,14 +48,23 @@ La Function manda datos a Application Insights cada vez que la llaman, guardando
 
 Para probar la alerta, rompimos la Function a propósito: le cambiamos a mano el nombre de la tabla por uno que no existe. Empezó a responder con error 500, el dashboard mostró el pico y a los pocos minutos la alerta se disparó. Después corrimos `tofu apply`, que detectó el cambio hecho a mano y volvió a dejar el nombre correcto, y la alerta se cerró sola.
 
-## [Juliana] El pipeline: de un Pull Request a Azure sin contraseñas
+## El pipeline: de un Pull Request a Azure sin contraseñas
 
-> *Esta sección la escribe Juliana. Ideas para cubrir:*
-> - *Qué corre en cada Pull Request (fmt, validate, tflint, Checkov, tests de la función y el plan como comentario).*
-> - *Cómo funciona el apply con aprobación (environment `dev`).*
-> - *Cómo entra GitHub Actions a Azure con OIDC, sin guardar ninguna clave.*
-> - *El state remoto: dónde está y por qué no tiene claves.*
-> - *Los permisos de la identidad del pipeline: Contributor solo en `rg-cloudcv-dev` y la condición que limita qué roles puede asignar.*
+Queríamos que nadie desplegara a mano y que no hubiera ninguna clave guardada en el repositorio, que además es público. Todo pasa por GitHub Actions.
+
+**Qué corre en cada Pull Request.** Apenas abrimos un PR, un primer workflow revisa el formato y la validez del código (`fmt` y `validate`), pasa un linter (`tflint`), un escáner de seguridad (Checkov) y los tests de la Function. Checkov nos marcó 19 puntos que decidimos aceptar, cada uno con un comentario en el código que explica por qué. Un segundo workflow corre `tofu plan` y deja el resultado como comentario en el PR, así la otra persona ve qué va a cambiar antes de aprobar.
+
+**El deploy con aprobación.** Cuando el PR se une a `main`, arranca el deploy, pero se frena en el environment `dev` hasta que alguien lo aprueba a mano. Después crea los recursos y sube el código de la Function en el mismo workflow. El primer despliegue creó 36 recursos en unos 4 minutos. Para destruir hay otro workflow manual, y para que no se dispare sin querer hay que escribir la palabra `destruir`. Nos tropezamos con una cosa tonta: un paso del deploy tenía mal la sangría del YAML (12 espacios en vez de 6), así que el archivo no era válido. Lo encontramos al revisar el Pull Request, antes de unirlo, y por eso el primer deploy salió bien de una.
+
+**Cómo entra a Azure sin claves.** GitHub Actions le pide a GitHub un token temporal (OIDC) y Azure lo acepta porque configuramos que confíe en nuestro repositorio, en tres casos concretos: un Pull Request, la rama `main` y el environment `dev`. No hay contraseña que robar ni que rotar: el token dura minutos. Nuestro primer intento falló porque Azure compara un texto que identifica al repositorio y el nuestro no coincidía. Lo arreglamos usando los números de identificación del dueño y del repo en vez de los nombres.
+
+**El estado remoto.** OpenTofu guarda lo que creó en un archivo de estado, dentro de un contenedor de Storage aparte, y se accede con permisos de Azure, sin claves de acceso. Ese Storage y la identidad del pipeline se crean una sola vez con el código de `infra/bootstrap`, que corremos desde la compu y no se destruyen con el resto.
+
+**Qué puede hacer la identidad del pipeline.** Tiene Contributor solo sobre el grupo `rg-cloudcv-dev`, no sobre toda la suscripción. Además puede asignar permisos, pero con una condición: solo dos roles (Table Data Contributor y Blob Data Contributor). Así, aunque alguien se quedara con el acceso del pipeline, no podría darse permisos de administrador. El detalle está en `docs/iam.md`.
+
+**Lo que cuidamos por ser un repo público.** Los mails de las alertas están en un secreto de GitHub y se tapan con `***@***` en los logs. El environment `dev` solo acepta la rama `main`.
+
+**Lo que dejamos pendiente, a propósito.** Usamos una sola identidad para el plan y para el apply. Lo ideal sería una de solo lectura para los Pull Request. Está anotado como limitación conocida.
 
 ## Cuánto cuesta
 
