@@ -62,7 +62,9 @@ La respuesta tiene que ser `{"visitas": N}` y el número tiene que subir en cada
 
 ## 5. Probar la alerta (para la demo)
 
-La alerta se dispara cuando más del 5 % de las llamadas dan error 5xx en 5 minutos. Se evalúa cada 5 minutos, y los datos tardan en llegar a Application Insights, así que **cuenta con varios minutos de espera**. Probarlo en el ensayo y anotar el tiempo real: **(a completar)**.
+La alerta se dispara cuando más del 5 % de las llamadas dan error 5xx en 5 minutos. Se evalúa cada 5 minutos, y los datos tardan en llegar a Application Insights.
+
+Tiempo medido en el ensayo del 10/11/2026 (dev): se rompió la Function a las 21:07:41 y la alerta se disparó a las 21:10, unos **3 minutos** después, y activó el grupo de acciones. Contar con **entre 3 y 10 minutos** de espera. El mail de "alerta disparada" no se pudo medir: en ese ensayo no llegó porque los receptores estaban sin verificar (ver el final de esta sección). El mail de **"Resuelta"** sí llegó, ya con el mail verificado, a las 22:01 (hora de Uruguay): unos 30 minutos después de la última llamada con error (21:30) y 21 minutos después de restaurar la Function (21:40). Por eso, no esperar que la alerta se cierre rápido. El tiempo del mail de "disparada" se mide en el ensayo del día antes (24 de noviembre).
 
 Para provocar el error, se apunta la Function a una tabla que no existe, de forma temporal:
 
@@ -79,13 +81,13 @@ az functionapp config appsettings list --name "$FUNCION" --resource-group rg-clo
 az functionapp config appsettings set --name "$FUNCION" --resource-group rg-cloudcv-dev --settings TABLE_NAME=noexiste
 ```
 
-3. Llamar a la API unas veinte veces: cada una tiene que responder `{"error": ...}` con código 500.
+3. Llamar a la API **de forma sostenida durante unos 5 minutos**. Una ráfaga corta no alcanza: si la alerta evalúa antes de que los datos lleguen a Application Insights, esos errores no los ve. Cada llamada tiene que responder `{"error": ...}` con código 500.
 
 ```bash
-for i in $(seq 1 20); do curl -s -o /dev/null -w "%{http_code}\n" -X POST "<api_url>"; done
+for i in $(seq 1 100); do curl -s -o /dev/null -w "%{http_code} " -X POST "<api_url>"; sleep 3; done
 ```
 
-4. Esperar el mail de la alerta (llega a las dos integrantes) y mostrarlo en la demo.
+4. Esperar el mail de la alerta (llega a las dos integrantes, si verificaron su mail) y mostrarlo en la demo.
 5. **Restaurar enseguida** el valor anotado:
 
 ```bash
@@ -94,7 +96,9 @@ az functionapp config appsettings set --name "$FUNCION" --resource-group rg-clou
 
 6. Comprobar que la API vuelve a responder 200 y que la alerta se cierra sola (aviso de resuelta).
 
-Nota: este procedimiento no está probado todavía. Si el comando de configuración difiere, ajustarlo y dejar el definitivo acá.
+**Antes de ensayar, verificar los mails.** Cuando se crea el grupo de acciones, Azure manda a cada dirección un mail ("You've been added to an Azure Monitor action group"). Hasta que se confirma, el receptor figura como **Pendiente** y no recibe las alertas. Pasa en cada despliegue desde cero. Se revisa en el portal: Monitor, Grupos de acciones, `ag-cloudcv-equipo`, columna de verificación, y con **Reenviar** se vuelve a mandar el mail.
+
+Probado el 10/11/2026: el procedimiento funciona. Al cambiar el ajuste la Function se reinicia, así que esperar un minuto antes de llamar a la API, y también después de restaurar el valor.
 
 ## 6. Destruir
 
@@ -111,7 +115,8 @@ Qué queda a propósito, porque lo necesita el próximo despliegue y cuesta cent
 
 ## 7. Checklist del día antes de la demo
 
-- [ ] Desplegar el día anterior, verificar y ensayar la prueba de la alerta.
+- [ ] Desplegar el día anterior (la entrega es el 18 de noviembre y la defensa el 25, así que desplegar el 24), verificar y ensayar la prueba de la alerta.
+- [ ] **Verificar los mails del grupo de acciones** (los dos en "Verificado"): después de cada despliegue desde cero quedan en "Pendiente" y sin eso la alerta no avisa.
 - [ ] Presupuesto activo y avisos llegando a las dos integrantes.
 - [ ] Todos los recursos con las etiquetas `project`, `team`, `env` y `owner`.
 - [ ] Sin recursos huérfanos: revisar la facturación y los resource groups.
