@@ -62,7 +62,7 @@ Lo que el pipeline no puede hacer: nada a nivel suscripción (no registra provee
 1. **Una sola identidad para `plan` y `apply`.** La credencial de pull request tiene los mismos permisos que la del `apply`. Quien tenga permiso de escritura en el repo podría modificar un workflow en un PR y ejecutar cambios sin pasar por la aprobación. Hoy lo mitigan: solo dos colaboradoras y aprobación de workflows externos. Mejora: una segunda identidad de solo lectura para los PR.
 2. **Credenciales atadas a los IDs del repo.** Si el repo se recrea o se transfiere, hay que actualizarlas en el bootstrap.
 3. **Un permiso manual.** El de Juliana sobre los dos resource groups no está en el código.
-4. **El listado de Owner de Macarena aparece duplicado.** Verificar en el portal si es una asignación repetida.
+4. **El rol Owner de la titular aparece dos veces en el listado.** No se modifica: si se borrara la asignación equivocada, la titular quedaría sin acceso de dueña a la suscripción.
 
 ## 7. Limpieza realizada
 

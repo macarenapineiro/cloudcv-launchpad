@@ -29,11 +29,16 @@ Guía paso a paso para operar CloudCV Launchpad. Está pensada para seguirla en 
 5. El job espera aprobación: abrir la ejecución, apretar **Review deployments**, marcar `dev` y **Approve and deploy**.
 6. Al terminar, el último paso imprime la dirección del sitio y de la API.
 
-Tiempo del primer despliegue: **(a completar con el tiempo real)**.
+Tiempo del primer despliegue (36 recursos desde cero): **unos 4 minutos**. El `apply` tardó 3 min 15 s, y casi la mitad es la cuenta de almacenamiento del sitio (1 min 21 s). Subir la Function tardó 21 s. No incluye la espera de aprobación.
 
 ## 3. Subir el código de la Function
 
-**(a completar)**: hoy el `apply` crea la infraestructura, pero todavía no sube el código de `app/function`. Acá va el paso o comando definitivo, y si usa build remoto.
+No hay que hacer nada a mano: `deploy.yml` sube el código solo, justo después del `apply`.
+
+- Usa la acción `Azure/functions-action@v1` con `sku: flexconsumption` y `remote-build: true` (las dependencias de Python se instalan en Azure, no en el runner).
+- Entra a Azure con OIDC (`azure/login`) y usa permisos RBAC. No hay claves de publicación ni perfiles de publicación.
+- El nombre de la Function sale de `tofu output function_app_name`.
+- En el log se reconoce por: `Using RBAC for authentication` y `Successfully deployed web package to Function App`.
 
 ## 4. Verificar
 
