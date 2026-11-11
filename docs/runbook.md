@@ -87,7 +87,7 @@ az functionapp config appsettings set --name "$FUNCION" --resource-group rg-clou
 for i in $(seq 1 100); do curl -s -o /dev/null -w "%{http_code} " -X POST "<api_url>"; sleep 3; done
 ```
 
-4. Esperar el mail de la alerta (llega a las dos integrantes, si verificaron su mail) y mostrarlo en la demo.
+4. Mostrar la alerta en el portal (Monitor, Alertas, Historial). El mail llega a Juliana, pero no se cuenta con él en la demo (ver el final de esta sección).
 5. **Restaurar enseguida** el valor anotado:
 
 ```bash
@@ -96,7 +96,9 @@ az functionapp config appsettings set --name "$FUNCION" --resource-group rg-clou
 
 6. Comprobar que la API vuelve a responder 200 y que la alerta se cierra sola (aviso de resuelta).
 
-**Antes de ensayar, verificar los mails.** Cuando se crea el grupo de acciones, Azure manda a cada dirección un mail ("You've been added to an Azure Monitor action group"). Hasta que se confirma, el receptor figura como **Pendiente** y no recibe las alertas. Pasa en cada despliegue desde cero. Se revisa en el portal: Monitor, Grupos de acciones, `ag-cloudcv-equipo`, columna de verificación, y con **Reenviar** se vuelve a mandar el mail.
+**Antes de ensayar, comprobar que los mails estén verificados.** Azure pide confirmar cada dirección nueva con un código de un solo uso (OTP) que vence a los 30 minutos ([documentación de Microsoft](https://learn.microsoft.com/azure/azure-monitor/alerts/action-groups)). Mientras figura como **Pendiente**, ese receptor no recibe las alertas. La verificación queda guardada para todo el tenant, así que una dirección ya verificada no se vuelve a pedir en los grupos de acciones que se creen después. Se revisa en el portal: Monitor, Grupos de acciones, `ag-cloudcv-equipo`, columna de verificación. Si alguno dice Pendiente: **Reenviar** e ingresar el código.
+
+En el ensayo, el mail llegó a la bandeja de Juliana pero no a la de Macarena. Probablemente sea un filtro de la UCU, por eso en la demo se muestra la alerta en el portal y no el mail.
 
 Probado el 10/11/2026: el procedimiento funciona. Al cambiar el ajuste la Function se reinicia, así que esperar un minuto antes de llamar a la API, y también después de restaurar el valor.
 
@@ -116,7 +118,7 @@ Qué queda a propósito, porque lo necesita el próximo despliegue y cuesta cent
 ## 7. Checklist del día antes de la demo
 
 - [ ] Desplegar el día anterior (la entrega es el 18 de noviembre y la defensa el 25, así que desplegar el 24), verificar y ensayar la prueba de la alerta.
-- [ ] **Verificar los mails del grupo de acciones** (los dos en "Verificado"): después de cada despliegue desde cero quedan en "Pendiente" y sin eso la alerta no avisa.
+- [ ] Revisar que los dos mails del grupo de acciones digan Suscrito (o Verificado); si alguno dice Pendiente, **Reenviar** e ingresar el código (vence a los 30 minutos).
 - [ ] Presupuesto activo y avisos llegando a las dos integrantes.
 - [ ] Todos los recursos con las etiquetas `project`, `team`, `env` y `owner`.
 - [ ] Sin recursos huérfanos: revisar la facturación y los resource groups.
