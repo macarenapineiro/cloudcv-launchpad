@@ -46,7 +46,7 @@ La Function manda datos a Application Insights cada vez que la llaman, guardando
 - **Un dashboard** con las visitas, los errores y la latencia p95 (el 95 % de las visitas tardó menos que ese valor). Usamos el p95 y no el promedio porque una visita muy lenta casi no mueve el promedio, pero en el p95 se nota.
 - **Una alerta** que cada 5 minutos revisa si más del 5 % de las llamadas fallaron, y si es así nos manda un mail.
 
-Para probar la alerta, rompimos la Function a propósito: le cambiamos a mano el nombre de la tabla por uno que no existe. Empezó a responder con error 500, el dashboard mostró el pico y a los pocos minutos la alerta se disparó. Después corrimos `tofu apply`, que detectó el cambio hecho a mano y volvió a dejar el nombre correcto, y la alerta se cerró sola.
+Para probar la alerta, rompimos la Function a propósito: le cambiamos a mano el nombre de la tabla por uno que no existe. Empezó a responder con error 500, el dashboard mostró el pico y a los pocos minutos la alerta se disparó. Después corrimos `tofu apply`, que detectó el cambio hecho a mano y volvió a dejar el nombre correcto. La alerta pasó sola a “Resuelta”, pero recién unos 20 a 30 minutos después: Azure espera a que pasen varias revisiones seguidas sin errores antes de cerrarla.
 
 ## El pipeline: de un Pull Request a Azure sin contraseñas
 
@@ -70,7 +70,7 @@ Queríamos que nadie desplegara a mano y que no hubiera ninguna clave guardada e
 
 Durante las pruebas, cada vez que levantamos todo lo tuvimos menos de una hora, y el costo estimado fue de menos de USD 0,05 por prueba. Casi todo entra en lo que Azure regala por mes.
 
-Hicimos también una proyección: con un millón de visitas por mes, el proyecto costaría entre USD 15 y 54, según la memoria de la Function. Por eso la bajamos de 2 GB a 512 MB, que para un contador alcanza de sobra. Todos los números y las medidas de ahorro están en el [informe FinOps](finops.md).
+Hicimos también una proyección: con un millón de visitas por mes, la calculadora de Azure da unos USD 16,75 por mes con la Function de 512 MB. Con 2 GB, la parte de la Function costaría cuatro veces más, porque Azure cobra por memoria × tiempo. Por eso la bajamos a 512 MB, que para un contador alcanza de sobra. Todos los números y las medidas de ahorro están en el [informe FinOps](finops.md).
 
 ## Qué aprendimos
 
