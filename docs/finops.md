@@ -53,7 +53,7 @@ Cómo se compara con lo que estimamos:
 
 #### Por qué el presupuesto marca más
 
-El presupuesto de USD 10 mide toda la suscripción, y en noviembre marcaba unos USD 3,40. Casi todo eso (USD 3,33) es un disco y una IP pública de una máquina virtual de otro trabajo de la facultad, que no tiene nada que ver con CloudCV. Gracias a las etiquetas pudimos separar lo nuestro en un minuto: sin el filtro `project = cloudcv`, hubiéramos pensado que el proyecto costaba 25 veces más.
+El presupuesto de USD 10 mide toda la suscripción, y en noviembre marcaba USD 3,42 (en el análisis de costos, USD 3,46: las dos pantallas se actualizan en momentos distintos). De eso, USD 3,33 es una máquina virtual de otro trabajo de la facultad, que no tiene nada que ver con CloudCV: su disco (USD 2,06) y su IP pública (USD 1,27). Gracias a las etiquetas pudimos separar lo nuestro en un minuto: sin el filtro `project = cloudcv`, hubiéramos pensado que el proyecto costaba 25 veces más.
 
 También aprendimos que un disco y una IP pública cobran aunque la máquina esté apagada.
 
